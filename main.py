@@ -111,10 +111,9 @@ async def on_message(ctx):
       f.write(file)
   await bot.process_commands(ctx)
 
-@tasks.loop(seconds=500)
+@tasks.loop(minutes=10)
 async def xpEmbed():
-  print("random")
-  check = random.randint(0, 20)
+  check = random.randint(0, 25)
   if check % 5 == 0:
     print("sending")
     messageChannel = bot.get_channel(715026731576197122)
@@ -126,21 +125,26 @@ async def xpEmbed():
 
 @bot.event
 async def on_reaction_add(reaction, user):
-  embed = reaction.embeds[0]
+  embed = reaction.message.embeds[0]
   emoji = reaction.emoji
   if user.bot:
     return
+  reactor = user
+  user = str(user)
   if embed.title == "Free XP":
     if emoji == "🙌":
       with open('users.json', "r") as f:
         data = json.load(f)
-        if user in data.keys():
+        if str(user) in data.keys():
           oldlvl = data[user]["level"]
           data[user]["xp"] += 25
           data[user]["level"] = math.floor(math.sqrt(data[user]["xp"])/5)
+          file = json.dumps(data)
           if oldlvl != data[user]["level"]:
-            await embed.channel.send(str(user.mention) + " you have leveled up to level " + str(data[user]["level"]) +"!")
+            await reaction.message.channel.send(str(reactor.mention) + " you have leveled up to level " + str(data[user]["level"]) +"!")
+          with open('users.json', "w") as f:
+            f.write(file)
   else:
     return
-    
+
 bot.run(os.getenv('TOKEN'))
